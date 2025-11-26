@@ -1,0 +1,78 @@
+models/
+runs/
+data/images/
+__pycache__/
+*.pyc
+.env
+.vscode/
+# Python/IDE
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.env
+.env.*
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Ultralytics / training outputs
+runs/
+outputs/
+logs/
+
+# Models (large binary weights)
+*.pt
+*.pth
+models/*.pt
+models/*.pth
+
+# Datasets / videos / zips (large)
+*.zip
+*.tar.gz
+*.tgz
+*.npz
+*.npy
+data/*.zip
+data/*.tar.gz
+data/videos/
+data/images/
+data/**/images/
+data/**/videos/
+
+# Temp files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Git LFS pointer files (if used)
+*.gitattributes
+
+data/
+datasets/
+*.jpg
+*.png
+*.txt
+*.yaml
+
