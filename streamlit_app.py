@@ -11,7 +11,92 @@ import tempfile
 import os
 import threading
 
-st.set_page_config(page_title="Detective-AI - Weapon Detector", layout="wide")
+st.set_page_config(
+    page_title="Detective-AI - Premium Weapon Detector",
+    page_icon="🔴",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ---------------- Premium UI Styling ----------------
+st.markdown("""
+    <style>
+    /* Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Dark Theme & Glassmorphism */
+    .stApp {
+        background: radial-gradient(circle at 10% 20%, rgb(18, 18, 18) 0%, rgb(10, 10, 10) 90%);
+        color: #e0e0e0;
+    }
+    
+    .stButton>button {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3);
+    }
+    
+    /* Custom Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: rgba(20, 20, 20, 0.8);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Status Cards */
+    .metric-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 75, 75, 0.4);
+    }
+    
+    /* Event Log Table */
+    .event-log-container {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        background: #0d0d0d;
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 4px solid #ff4b4b;
+    }
+    
+    /* Highlight Alerts */
+    .stAlert {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    /* Custom Header */
+    .dashboard-header {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: -webkit-linear-gradient(#f8f9fa, #ff4b4b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 2rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # ---------------- Settings ----------------
 MODEL_PATHS = [
@@ -77,8 +162,8 @@ st.title("🔴 Detective-AI — Live Weapon Detector")
 col1, col2 = st.columns([3, 1])
 
 with col2:
-    st.markdown("### Alerts & Controls")
-    st.caption("Model: " + (os.path.basename(model_path) if model_path else "fallback yolov8n"))
+    st.markdown("### 🛠️ Controls")
+    st.caption("🔍 Model: " + (os.path.basename(model_path) if model_path else "fallback yolov8n"))
     
     col_start, col_stop = st.columns(2)
     with col_start:
@@ -86,43 +171,58 @@ with col2:
     with col_stop:
         stop_button = st.button("⏹️ Stop", type="secondary", use_container_width=True)
     
+    st.write("---")
+    st.markdown("**📁 Input Source**")
+    source_type = st.selectbox("Source Selection:", ["Webcam (live)", "Upload video"])
+    
+    uploaded_file = None
+    if source_type == "Upload video":
+        uploaded_file = st.file_uploader(
+            "Target Video File", 
+            type=["mp4", "avi", "mov", "mkv"],
+            help="High-res files may affect processing speed"
+        )
+    
+    st.write("---")
+    st.markdown("**📊 Live Statistics**")
+    stats_placeholder = st.empty()
+    
+    # System Health Mockup
+    st.write("---")
+    st.markdown("**🛡️ System Health**")
+    gpu_label = "Active (NVIDIA)" if torch.cuda.is_available() else "Inactive (CPU)"
+    st.progress(0.85, text=f"GPU Load: {gpu_label}")
+    st.progress(0.42, text="Memory Usage")
+    
+    st.write("---")
+    st.markdown("**📝 Event Log**")
+    events_out = st.empty()
+    
     if st.button("🗑️ Clear Log", use_container_width=True):
         st.session_state.events_log = ""
         st.session_state.detection_count = 0
         st.session_state.last_alert = "ℹ️ Event log cleared"
         st.rerun()
-    
-    st.write("---")
-    st.markdown("**Input Source**")
-    source_type = st.selectbox("Source:", ["Webcam (live)", "Upload video"])
-    
-    uploaded_file = None
-    if source_type == "Upload video":
-        uploaded_file = st.file_uploader(
-            "Upload video file", 
-            type=["mp4", "avi", "mov", "mkv"],
-            help="Max 200MB recommended"
+
+    if st.session_state.events_log:
+        st.download_button(
+            label="📄 Download Log",
+            data=st.session_state.events_log,
+            file_name="detective_ai_log.txt",
+            mime="text/plain",
+            use_container_width=True
         )
-    
-    st.write("---")
-    st.markdown("**Statistics**")
-    stats_placeholder = st.empty()
-    
-    st.write("---")
-    st.markdown("**Settings**")
-    st.write(f"- Image size: {IMG_SIZE}")
-    st.write(f"- Confidence: {CONF_THR}")
-    st.write(f"- IoU threshold: {IOU_THR}")
-    st.write(f"- Device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
-    
-    st.write("---")
-    st.markdown("**Event Log**")
-    events_out = st.empty()
 
 with col1:
+    st.markdown('<div class="dashboard-header">🔴 Detective-AI — Surveillance Console</div>', unsafe_allow_html=True)
     frame_placeholder = st.empty()
-    status_placeholder = st.empty()
-    alert_placeholder = st.empty()
+    
+    # Grid for Alerts and Status
+    status_col1, status_col2 = st.columns(2)
+    with status_col1:
+        alert_placeholder = st.empty()
+    with status_col2:
+        status_placeholder = st.empty()
 
 # ---------------- File Upload Handler ----------------
 if uploaded_file is not None:
